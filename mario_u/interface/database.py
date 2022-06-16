@@ -217,32 +217,34 @@ class DataFactory:
 
 
 # %%
-model_file = (
-    "main.xlsx"
-)
-data = DataFactory(model_file)
-#%%
-data.get_input_excels('test')
-#%%
-data.read_input_excels('test')
-test_frame = pd.read_excel('test.xlsx',header=[0,1])
-# %%n
-data.add_new_sets(test_frame)
-# %%
-data.get_input_excels('test2',filled_files=True)
 
-# %%
+if __name__ == "__main__":
+    model_file = (
+        "main.xlsx"
+    )
+    data = DataFactory(model_file)
+    #%%
+    data.get_input_excels('test')
+    #%%
+    data.read_input_excels('test')
+    test_frame = pd.read_excel('test.xlsx',header=[0,1])
+    # %%n
+    data.add_new_sets(test_frame)
+    # %%
+    data.get_input_excels('test2',filled_files=True)
 
-
-class Temp:
-
-    def __init__(self,centig):
-
-        self.centig = centig
-
-    @property
-    def faren(self):
-        return self.centig * 2
+    # %%
 
 
-# %%
+    class Temp:
+
+        def __init__(self,centig):
+
+            self.centig = centig
+
+        @property
+        def faren(self):
+            return self.centig * 2
+
+
+    # %%

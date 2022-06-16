@@ -475,6 +475,38 @@ class Plots:
     def plot_operational_costs(self,**layout):
         pass
 
+    def plot_impact(self,impact,**layout):
+
+        _impact = impact
+        impact = (
+            self.results['impact'].groupby(level=0,axis=1).sum() * 8760/len(self.sets.operation_time)
+        ).loc[impact,:]
+
+        #return impact
+        fig = go.Figure()
+
+        for tech,val in impact.iteritems():
+            if sum(val.values) == 0: continue
+            name = tech
+
+            fig.add_trace(
+                go.Bar(
+                    x = [_impact],
+                    y = val.values.ravel(),
+                    name = name,
+                    marker_color = self.colors.loc[name,"color"]
+                )
+            )
+
+        fig.update_layout(
+                {
+                "barmode" : "relative",
+                "title" : f"Impact Assessment <br> <sub>{_impact}</sub>",
+                },
+            )
+        fig.update_layout(**layout)
+        fig.show()
+        return fig
 
 
 
@@ -490,7 +522,7 @@ elect_capacity_fig = plt.plot_D(['PV',"Grid"],**layout)
 cost = plt.plot_investment_cost(['PV',"Grid"],**layout)
 shares = plt.plot_total_investment(**layout)
 #%%
-t = plt.plot_supply_demand(
+sp_fig = plt.plot_supply_demand(
     need="Electricity",
     activities=["Exploiting Grid for Electricity","Exploiting PV for Electricity","Exploiting Powerwall for Electricity"],
     time_slices={
@@ -498,13 +530,34 @@ t = plt.plot_supply_demand(
         "Summer" : sets.operation_time[24*7:24*7*2],
         # "Autumn" : sets.operation_time[48:72],
         # "Winter" : sets.operation_time[72:],
-        }
+        },
+        **layout
+    )
+#%%
+impact_fig= plt.plot_impact(
+    impact="CO2",
+
+        **layout
     )
 #%%
 # save the results
 results.to_excel("results")
 
+#%%
+import plotly.express as px
+Cost_y = 12*plt.results['costs'].groupby(level=0,axis=1).sum().T
+Inv = plt.results['investment']
+Exp = pd.DataFrame(0, index=Inv.index, columns=['Investment costs [€]','Operative costs [€/y]'])
 
+for tec in t.Name:
+    Exp.loc[tec,'Investment costs [€]'] = abs(Inv.loc[tec,:].values)
+    Exp.loc[tec,'Operative costs [€/y]'] = abs(Cost_y.loc[tec,:].values)
+
+Exp_plt = Exp.stack()
+Exp_plt = Exp_plt.reset_index()
+Exp_plt.columns=['tec','step','soldi']
+fig = px.treemap(Exp_plt, path=[px.Constant("Total Cost"),'step','tec'], values='soldi')
+fig.update_layout(**layout)
 
 
 
